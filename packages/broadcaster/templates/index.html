@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<main class="container mx-auto h-screen flex flex-col justify-center font-sans">
+	<h1 class="text-center my-4 font-bold text-2xl">Off To Go Chasing Rabbit?</h1>
+	<blockquote class="max-w-prose mx-auto my-4 border-l-2 pl-4 border-slate-200 italic font-serif">
+		<p>You take the blue pill... the story ends, you wake up in your bed and believe whatever you want to believe. You
+			take the red pill... you stay in Wonderland, and I show you how deep the rabbit hole goes.</p>
+	</blockquote>
+	<nav class="flex justify-center gap-4 my-2">
+		<button class="rounded-full w-24 h-12 bg-red-500 transition-opacity duration-300" data-type="red"><span
+				class="sr-only">Red</span></button>
+		<button class="rounded-full w-24 h-12 bg-sky-500 transition-opacity duration-300" data-type="blue"><span
+				class="sr-only">Blue</span></button>
+	</nav>
+</main>
+
+<script>
+	window.addEventListener("DOMContentLoaded", (event) => {
+		fetch("/event/log:open", {method: "POST"});
+	});
+	document.addEventListener("click", (event) => {
+		if (!event.target.hasAttribute("data-type")) {
+			return;
+		}
+		fetch(`/event/pill:${event.target.dataset.type}`, {method: "POST"});
+		event.target.classList.add('opacity-20')
+		setTimeout(() => {
+			event.target.classList.remove('opacity-20')
+		}, 350)
+	});
+</script>

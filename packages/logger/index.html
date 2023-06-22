@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  html,
+  body {
+    overflow: hidden
+  }
+</style>
+
+<main class="container mx-auto h-screen flex flex-col font-sans">
+  <section class="flex gap-4 my-4 italic text-lg">
+    <div id="c-login" class="flex-1 flex flex-col items-center p-2 rounded-lg border-2 border-slate-200">
+      <span class="font-bold not-italic text-4xl">0</span>
+      login actions
+    </div>
+    <div id="c-clicks" class="grow flex flex-col items-center p-2 rounded-lg border-2 border-slate-200">
+      <span class="font-bold not-italic text-4xl">0</span>
+      clicks
+    </div>
+    <div id="c-alerts" class="grow flex flex-col items-center p-2 rounded-lg border-2 border-slate-200">
+      <span class="font-bold not-italic text-4xl">0</span>
+      alerts
+    </div>
+  </section>
+  <section id="feed" class="grow flex flex-col-reverse justify-start overflow-y-auto py-2">
+  </section>
+</main>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <symbol id="debug" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M12 12.75c1.148 0 2.278.08 3.383.237 1.037.146 1.866.966 1.866 2.013 0 3.728-2.35 6.75-5.25 6.75S6.75 18.728 6.75 15c0-1.046.83-1.867 1.866-2.013A24.204 24.204 0 0112 12.75zm0 0c2.883 0 5.647.508 8.207 1.44a23.91 23.91 0 01-1.152 6.06M12 12.75c-2.883 0-5.647.508-8.208 1.44.125 2.104.52 4.136 1.153 6.06M12 12.75a2.25 2.25 0 002.248-2.354M12 12.75a2.25 2.25 0 01-2.248-2.354M12 8.25c.995 0 1.971-.08 2.922-.236.403-.066.74-.358.795-.762a3.778 3.778 0 00-.399-2.25M12 8.25c-.995 0-1.97-.08-2.922-.236-.402-.066-.74-.358-.795-.762a3.734 3.734 0 01.4-2.253M12 8.25a2.25 2.25 0 00-2.248 2.146M12 8.25a2.25 2.25 0 012.248 2.146M8.683 5a6.032 6.032 0 01-1.155-1.002c.07-.63.27-1.222.574-1.747m.581 2.749A3.75 3.75 0 0115.318 5m0 0c.427-.283.815-.62 1.155-.999a4.471 4.471 0 00-.575-1.752M4.921 6a24.048 24.048 0 00-.392 3.314c1.668.546 3.416.914 5.223 1.082M19.08 6c.205 1.08.337 2.187.392 3.314a23.882 23.882 0 01-5.223 1.082" />
+    </symbol>
+    <symbol id="info" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    </symbol>
+    <symbol id="notif" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5" />
+    </symbol>
+  </defs>
+</svg>
+
+<template id="banner">
+  <div class="flex gap-4 m-2 rounded-lg ring ring-offset-2 ring-slate-200 p-4 capitalize transition-opacity opacity-0">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+      <use xlink:href="#" />
+    </svg>
+    <span />
+  </div>
+</template>
+"
+<script>
+  const events_url = 'https://ad-demo-sse.alwaysdata.net/events'
+  const evtSource = new EventSource(events_url);
+
+  const $main = document.querySelector("main")
+  const $feed = $main.querySelector("#feed")
+  const template = document.querySelector("#banner")
+  const counters = {
+    login: {$el: $main.querySelector('#c-login span'), state: 0},
+    clicks: {$el: $main.querySelector('#c-clicks span'), state: 0},
+    alerts: {$el: $main.querySelector('#c-alerts span'), state: 0}
+  }
+
+  console.log(counters)
+
+  function onEvent({data}) {
+    const {message, level, notify} = JSON.parse(data)
+
+    const clone = template.content.cloneNode(true)
+    const $el = clone.querySelector('div')
+    $el.querySelector('span').textContent = message
+
+    if (level == "debug") {
+      counters.login.state++
+      $el.classList.add("bg-slate-200")
+      $el.querySelector('svg use').setAttribute("xlink:href", "#debug")
+    }
+
+    if (level == "info") {
+      counters.clicks.state++
+      $el.classList.add("bg-green-200")
+      $el.querySelector('svg use').setAttribute("xlink:href", "#info")
+    }
+
+    if (notify) {
+      counters.alerts.state++
+      $el.classList.add("ring-red-300")
+      $el.querySelector('svg use').setAttribute("xlink:href", "#notif")
+
+      new Notification("Chasing Rabbit!", {body: message})
+    }
+
+    counters.login.$el.textContent = counters.login.state
+    counters.clicks.$el.textContent = counters.clicks.state
+    counters.alerts.$el.textContent = counters.alerts.state
+
+    $feed.insertBefore(clone, $feed.firstChild)
+    setTimeout(() => {
+      $el.classList.remove('opacity-0')
+    }, 35)
+    setTimeout(() => {
+      $el.classList.add("opacity-0")
+    }, 6000)
+    setTimeout(() => {
+      $el.remove()
+    }, 6300)
+  }
+
+  evtSource.addEventListener("login", onEvent)
+  evtSource.addEventListener("user:btn", onEvent)
+
+  window.addEventListener("DOMContentLoaded", () => {
+    Notification.requestPermission();
+  })
+</script>
